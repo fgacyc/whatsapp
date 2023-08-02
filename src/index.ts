@@ -1,12 +1,19 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import bodyParser from 'body-parser';
+import { WABAClient } from 'whatsapp-business';
 import axios from 'axios';
 
 dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 const port = 3000;
+
+const client = new WABAClient({
+	accountId: process.env.WABA_ID ?? '',
+	apiToken: process.env.WHATSAPP_AUTH_TOKEN ?? '',
+	phoneId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
+});
 
 type WhatsAppMessage = {
 	receiver: string;
@@ -23,24 +30,13 @@ app.post('/message', async (req, res) => {
 	// res.send(body);
 
 	try {
-		await axios
-			.post(
-				`https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-				{
-					messaging_product: 'whatsapp',
-					to: body.receiver,
-					text: {
-						body: body.message,
-					},
-				},
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${process.env.WHATSAPP_AUTH_TOKEN}`,
-					},
-				},
-			)
-			.then((response) => res.status(200).send(response.data));
+		await client.sendMessage({
+			to: body.receiver,
+			type: 'text',
+			text: {
+				body: body.message,
+			},
+		});
 
 		res.status(200).send();
 	} catch (err: unknown) {
