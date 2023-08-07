@@ -37,7 +37,7 @@ app.post('/message', async (req, res) => {
 				body: body.message,
 			},
 		});
-
+		console.log('sent');
 		res.status(200).send();
 	} catch (err: unknown) {
 		console.error(err);
